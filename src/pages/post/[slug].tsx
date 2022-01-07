@@ -14,6 +14,7 @@ import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import Header from '../../components/Header';
 import { useRouter } from 'next/router';
+import { Comments } from '../../components/Comments';
 
 interface PostPagination {
   next_page: string;
@@ -108,6 +109,7 @@ export default function Post(props: PostProps) {
         }
       )}
     </div>
+    <Comments commentNodeId="comments" />
    </main>
  )
 }
