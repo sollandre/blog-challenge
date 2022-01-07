@@ -1,1 +1,9 @@
-// TODO
+.container {
+  max-width: 100%;
+  padding: min(4.5rem, 45px) 0;
+
+  img {
+    max-width: 239px;
+    width: 23.9rem;
+  }
+}
