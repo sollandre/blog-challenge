@@ -1,20 +1,21 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
+
 import Prismic from '@prismicio/client'
-import PrismicH from '@prismicio/helpers'
 import PrismicDOM from 'prismic-dom';
 
 import { getPrismicClient } from '../../services/prismic';
+import useUpdatePreview from '../../utils/useUpdatePreview'
 
 import { PostInfo } from '../../components/PostInfo';
+import { Comments } from '../../components/Comments';
+
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
-import Header from '../../components/Header';
-import { useRouter } from 'next/router';
-import { Comments } from '../../components/Comments';
+import Link from 'next/link';
 
 interface PostPagination {
   next_page: string;
@@ -59,7 +60,7 @@ function parsePost(section) {
   }
 }
 
-export default function Post(props: PostProps) {
+export default function Post(props) {
   const router = useRouter();
   if(router.isFallback){
     return (
@@ -67,11 +68,13 @@ export default function Post(props: PostProps) {
     )
   }
 
-  const { post } = props;
+  const { preview, previewRef, post } = props;
 
   const text = PrismicDOM.RichText.asText(post.data.content.reduce((acc, cur) => [...acc, ...cur.body], [] ));
   const words = text.split(/\W/);
   const time = Math.ceil(words.length/200);
+  
+  useUpdatePreview(previewRef, post.id)
 
   return (
    <main className={styles.container}>
@@ -94,6 +97,16 @@ export default function Post(props: PostProps) {
         text={`${time} min`}
       />
     </div>
+    <div className={styles.updatedInfo}>
+      *editado em { format(new Date(post.last_publication_date), 'dd MMM yyyy, HH:mm', {locale: ptBR}) }
+    </div>
+    {preview && (
+    <aside className={styles.previewButton}>
+      <Link href="/api/exit-preview">
+        <a>Sair do modo Preview</a>
+      </Link>
+    </aside>
+    )}
     <div className={styles.content}>
       {post.data.content.map(
         (section, index) => {
@@ -109,8 +122,35 @@ export default function Post(props: PostProps) {
         }
       )}
     </div>
+    <div className={styles.divider}></div>
+    <div className={styles.relatedPostsContainer}>
+      { post.data.previous_post.slug != undefined ?
+        
+        <div className={styles.relatedPost}>
+          <p>{post.data.previous_post.slug.replace(/-/g, ' ')}</p>
+          <Link href={`/post/${post.data.previous_post.uid}`}>
+            <button>Previous post</button>
+          </Link>
+        </div> 
+        
+        : <div className={styles.relatedPost} />
+      }
+      {post.data.next_post.slug != undefined ? 
+        
+        <div className={styles.relatedPost}>
+          <p>{post.data.next_post.slug.replace(/-/g, ' ')}</p>
+          <Link href={`/post/${post.data.next_post.uid}`}>
+            <button>Next post</button>
+          </Link>
+        </div> 
+        
+        : <div className={styles.relatedPost} />     
+      }
+    </div>
     <Comments commentNodeId="comments" />
    </main>
+
+  
  )
 }
 
@@ -152,12 +192,21 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps = async context => {
+
+  const preview = context.preview ? context.preview : false;
+  const previewRef = context.previewData ? context.previewData.ref : null;
+  const refOption = previewRef ? { ref: previewRef } : null;
+
   const prismic = getPrismicClient();
   const slug = context.params.slug;
-  const response = await prismic.getByUID('article', slug, null);
+  const queryOptions = {...refOption, fetchLinks: ['next_post', 'previous_post']};
+  
+  const response = await prismic.getByUID('article', slug, {...refOption, fetchLinks: ['next_post', 'previous_post']}) || {};
 
   return {
     props: {
+      preview,
+      previewRef,
       post: response
     }
   };

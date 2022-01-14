@@ -25,6 +25,22 @@
     gap: 2.4rem;
   }
 
+  .updatedInfo {
+    font-style: italic;
+    font-size: 1.4rem;
+    color: var(--grey-800);
+    margin-top: 1.2rem;
+  }
+
+  .previewButton {
+    color: var(--pink-500);
+    margin-top: 2rem;
+    transition: 0.2s;
+    &:hover{
+      filter: brightness(1.2);
+    }
+  }
+
   .content {
     section {
       h2 {
@@ -41,4 +57,51 @@
     }
   }
 
+  .relatedPostsContainer {
+    display: flex;
+    justify-content: space-between;
+
+    .relatedPost {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .8rem;
+      margin-bottom: 3rem;
+
+      p {
+        text-transform: capitalize;
+        font-size: 1.8rem;
+        color: var(--grey-100);
+      }
+
+      button {
+        color: var(--pink-500);
+        background: none;
+        border: none;
+        align-self: flex-start;        
+        transition: filter .2s;
+        
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+
+      & + .relatedPost {
+        button{
+          align-self: flex-end;
+        }
+      }
+
+    }
+  }
+
+  .divider {
+    height: 0.5px;
+    width: 95%;
+    margin: 3rem auto 4rem auto;
+    padding: 0 2rem;
+    background-color: var(--pink-500);
+    border-radius: 1rem;
+    opacity: 0.2;
+  }
 }
